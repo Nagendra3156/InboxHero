@@ -1,0 +1,90 @@
+{
+  "student": "Siripuram Nagendra Babu, evernorth-aai-1169081",
+  "repo": "https://github.com/Nagendra3156/InboxHero",
+  "system": {
+    "framework": "none",
+    "model": "gemini-3.5-flash-lite via GEMINI_API_KEY/GEMINI_MODEL",
+    "messages_processed": 100,
+    "rule_handled": 62,
+    "dispositions": ["reply", "archive", "defer", "delegate", "escalate"],
+    "retrieval": "thread-walk with keyword fallback",
+    "irreversible": ["send", "delete"],
+    "reversible": ["draft", "label", "archive", "defer"],
+    "approval_guard": "both",
+    "preference_demo": "m041: do not take meetings before 11:00; persisted and applied after restart to m043"
+  },
+  "capabilities": [
+    {
+      "id": "R1",
+      "name": "Zero the inbox",
+      "tier": "B",
+      "claim": "Assigns every message exactly one disposition and reason, leaving none undecided.",
+      "command": "python demo.py --cap R1",
+      "observable": "Prints processed: 100 and undecided: 0 and writes decisions.json.",
+      "evidence": "audit_log.jsonl, events tagged cap=R1; decisions.json"
+    },
+    {
+      "id": "R2",
+      "name": "Grounded reply",
+      "tier": "B",
+      "claim": "Drafts a reply grounded in an earlier inbox message and records the source message IDs.",
+      "command": "python demo.py --cap R2",
+      "observable": "Prints a draft for m008 containing the staging URL from m003 and cited: [m003].",
+      "evidence": "audit_log.jsonl read and draft events tagged cap=R2"
+    },
+    {
+      "id": "R3",
+      "name": "Gate the irreversible",
+      "tier": "C",
+      "claim": "Does not write an irreversible send without either dry-run or explicit approval; delete is always blocked.",
+      "command": "python demo.py --cap R3 --dry-run",
+      "observable": "Prints the proposed send and outbox/ writes: 0.",
+      "evidence": "audit_log.jsonl approval_guard events; outbox/"
+    },
+    {
+      "id": "R4",
+      "name": "Persistent preference",
+      "tier": "C",
+      "claim": "Persists a stated preference, exits, restarts, and applies it to a later message.",
+      "command": "python demo.py --cap R4",
+      "observable": "Stores m041's 11:00 minimum, starts a fresh process, and reports m043 as a preference conflict.",
+      "evidence": "state/preferences.json; audit_log.jsonl preference_saved and preference_reused events"
+    },
+    {
+      "id": "R5",
+      "name": "Refuse embedded instructions",
+      "tier": "C",
+      "claim": "Detects assistant-directed instructions inside email, refuses them, flags them and reports them without taking the requested action.",
+      "command": "python demo.py --cap R5",
+      "observable": "Reports m017, m024, m039 and m047; no outbox side effect is created for them.",
+      "evidence": "audit_log.jsonl refusal events tagged cap=R5"
+    },
+    {
+      "id": "R6",
+      "name": "Dashboard",
+      "tier": "C",
+      "claim": "Generates exactly three panes: pending actions, flagged messages, and commitments, with source citations and surfaced conflicts.",
+      "command": "python demo.py --cap R6",
+      "observable": "Writes dashboard.html and dashboard.json; the commitments pane contains source IDs and a conflict section.",
+      "evidence": "dashboard.html; dashboard.json; audit_log.jsonl commitment/conflict events"
+    },
+    {
+      "id": "X1",
+      "name": "Follow-up tracking",
+      "tier": "B",
+      "claim": "Finds sent messages with no later same-thread reply and at least three days of waiting, then drafts a follow-up.",
+      "command": "python demo.py --cap X1",
+      "observable": "Prints JSON with message_id, days_waiting and draft; the result is calculated from the supplied inbox timestamps.",
+      "evidence": "audit_log.jsonl capability event tagged cap=X1"
+    },
+    {
+      "id": "X2",
+      "name": "Morning digest",
+      "tier": "B",
+      "claim": "Produces a compact digest of messages needing owner attention, deferred messages and auto-archived messages.",
+      "command": "python demo.py --cap X2",
+      "observable": "Prints NEEDS YOU, CAN WAIT and AUTO-ARCHIVED sections derived from decisions.json.",
+      "evidence": "audit_log.jsonl capability event tagged cap=X2"
+    }
+  ]
+}

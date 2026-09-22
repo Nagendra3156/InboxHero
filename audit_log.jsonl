@@ -1,0 +1,1 @@
+{"ts": "2026-09-22T18:58:20.685739+00:00", "event": "approval_guard", "proposed": {"message_id": "m046", "action": "send", "to": "editor@techbrief.news", "subject": "Re: Quick question for our launch coverage", "body": "Draft awaiting human approval."}, "human": "approved", "result": "sent", "outbox": "m046.json"}
